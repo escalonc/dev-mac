@@ -14,6 +14,10 @@ LOG_FILE="$HOME/dev-setup.log"
 exec > >(tee -a "$LOG_FILE") 2>&1
 echo "━━━ Setup started at $(date) ━━━"
 
+# Quiet Homebrew during this run (the .zshrc heredoc sets these for future shells too)
+export HOMEBREW_NO_ANALYTICS=1
+export HOMEBREW_NO_ENV_HINTS=1
+
 # ─────────────────────────────────────────────────────────────────────────────
 # COLORS & HELPERS
 # ─────────────────────────────────────────────────────────────────────────────
@@ -182,11 +186,12 @@ CLI_TOOLS=(
   "coreutils"        # GNU core utilities
   "cmake"            # Build system
   "openssl"          # TLS/SSL toolkit
+  "awscli"           # AWS CLI
+  "azure-cli"        # Azure CLI
 )
 
 for tool in "${CLI_TOOLS[@]}"; do
-  pkg=$(echo "$tool" | awk '{print $1}')
-  install_brew "$pkg"
+  install_brew "$tool"
 done
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -282,15 +287,6 @@ else
   success "Rust"
 fi
 
-# Bun (JS runtime)
-if command -v bun &>/dev/null; then
-  success "Bun already installed"
-else
-  info "Installing Bun..."
-  curl -fsSL https://bun.sh/install | bash
-  success "Bun"
-fi
-
 # ─────────────────────────────────────────────────────────────────────────────
 # 6. PACKAGE MANAGERS & BUILD TOOLS
 # ─────────────────────────────────────────────────────────────────────────────
@@ -307,9 +303,8 @@ npm_globals=(
 )
 
 for pkg in "${npm_globals[@]}"; do
-  name=$(echo "$pkg" | awk '{print $1}')
-  info "Installing npm global: $name..."
-  npm install -g "$name" --quiet 2>/dev/null && success "$name" || warn "Failed: $name"
+  info "Installing npm global: $pkg..."
+  npm install -g "$pkg" --quiet 2>>"$LOG_FILE" && success "$pkg" || warn "Failed: $pkg (see $LOG_FILE)"
 done
 
 # Python tools via uv (isolated, no pip needed)
@@ -322,21 +317,12 @@ UV_TOOLS=(
 )
 
 for tool in "${UV_TOOLS[@]}"; do
-  name=$(echo "$tool" | awk '{print $1}')
-  info "Installing uv tool: $name..."
-  uv tool install "$name" 2>>"$LOG_FILE" && success "$name" || warn "Failed: $name"
+  info "Installing uv tool: $tool..."
+  uv tool install "$tool" 2>>"$LOG_FILE" && success "$tool" || warn "Failed: $tool (see $LOG_FILE)"
 done
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 7. DEVOPS & CLOUD TOOLS
-# ─────────────────────────────────────────────────────────────────────────────
-section "»  DevOps & Cloud Tools"
-
-install_brew "awscli"           # AWS CLI
-install_brew "azure-cli"        # Azure CLI
-
-# ─────────────────────────────────────────────────────────────────────────────
-# 8. GUI APPLICATIONS (via Homebrew Cask)
+# 7. GUI APPLICATIONS (via Homebrew Cask)
 # ─────────────────────────────────────────────────────────────────────────────
 section "»  Applications"
 
@@ -396,7 +382,7 @@ install_brew_cask "font-cascadia-code-nerd-font"
 install_brew_cask "font-meslo-lg-nerd-font"
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 9. VS CODE EXTENSIONS
+# 8. VS CODE EXTENSIONS
 # ─────────────────────────────────────────────────────────────────────────────
 section "»  VS Code Extensions"
 
@@ -438,7 +424,7 @@ else
 fi
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 10. GIT GLOBAL CONFIG
+# 9. GIT GLOBAL CONFIG
 # ─────────────────────────────────────────────────────────────────────────────
 section "»  Git Configuration"
 
@@ -537,7 +523,7 @@ GITIGNORE
 success "Git configured for $GIT_NAME <$GIT_EMAIL>"
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 11. SSH — 1PASSWORD AGENT
+# 10. SSH — 1PASSWORD AGENT
 # ─────────────────────────────────────────────────────────────────────────────
 section "»  SSH — 1Password Agent"
 
@@ -565,7 +551,7 @@ info "4. Test with: ssh -T git@github.com"
 echo ""
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 12. ZSHRC CONFIGURATION
+# 11. ZSHRC CONFIGURATION
 # ─────────────────────────────────────────────────────────────────────────────
 section "»  Shell Configuration (.zshrc)"
 
@@ -640,10 +626,6 @@ eval "$(fnm env --use-on-cd)"
 # uv (Python — replaces pyenv, pip, poetry, pipx, virtualenv)
 eval "$(uv generate-shell-completion zsh 2>/dev/null || true)"
 
-# Bun
-export BUN_INSTALL="$HOME/.bun"
-export PATH="$BUN_INSTALL/bin:$PATH"
-
 # ── Tool Config ──────────────────────────────────────────────────────────────
 # zoxide (smart cd)
 eval "$(zoxide init zsh)"
@@ -697,7 +679,7 @@ alias dpsa="docker ps -a"
 alias dex="docker exec -it"
 alias drm="docker rm"
 alias drmi="docker rmi"
-alias dprune="docker system prune -af"
+alias dprune="docker system prune -a"
 
 # Python / uv
 alias py="python3"
@@ -747,15 +729,13 @@ extract() {
       *.tar.bz2) tar xjf "$1"    ;;
       *.tar.gz)  tar xzf "$1"    ;;
       *.bz2)     bunzip2 "$1"    ;;
-      *.rar)     unrar x "$1"    ;;
       *.gz)      gunzip "$1"     ;;
       *.tar)     tar xf "$1"     ;;
       *.tbz2)    tar xjf "$1"    ;;
       *.tgz)     tar xzf "$1"    ;;
       *.zip)     unzip "$1"      ;;
       *.Z)       uncompress "$1" ;;
-      *.7z)      7z x "$1"       ;;
-      *)         echo "'$1' cannot be extracted" ;;
+      *)         echo "'$1' cannot be extracted (use Keka for .rar/.7z)" ;;
     esac
   else
     echo "'$1' is not a valid file"
@@ -812,7 +792,7 @@ else
 fi
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 13. MACOS SYSTEM DEFAULTS
+# 12. MACOS SYSTEM DEFAULTS
 # ─────────────────────────────────────────────────────────────────────────────
 section "»  macOS System Preferences"
 
@@ -908,11 +888,6 @@ defaults write com.apple.TextEdit PlainTextEncoding -int 4
 defaults write com.apple.TextEdit PlainTextEncodingForWrite -int 4
 success "TextEdit"
 
-# ── Terminal ──────────────────────────────────────────────────────────────────
-info "Configuring Terminal..."
-defaults write com.apple.terminal SecureKeyboardEntry -bool true
-success "Terminal"
-
 # Apply changes
 killall Dock    2>/dev/null || true
 killall Finder  2>/dev/null || true
@@ -921,7 +896,7 @@ killall SystemUIServer 2>/dev/null || true
 success "macOS defaults applied"
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 14. CLAUDE CODE
+# 13. CLAUDE CODE
 # ─────────────────────────────────────────────────────────────────────────────
 section "»  Claude Code"
 
@@ -957,7 +932,7 @@ fi
 info "Docs: https://docs.claude.com/en/docs/claude-code/overview"
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 15. FINAL CLEANUP
+# 14. FINAL CLEANUP
 # ─────────────────────────────────────────────────────────────────────────────
 section "»  Cleanup"
 
