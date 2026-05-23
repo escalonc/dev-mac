@@ -840,6 +840,9 @@ success "Screenshots → ~/Pictures/Screenshots"
 # ── Menu Bar & UI ─────────────────────────────────────────────────────────────
 info "Configuring UI..."
 defaults write NSGlobalDomain AppleInterfaceStyle    -string "Dark"    # Dark mode
+defaults write NSGlobalDomain AppleIconAppearanceTheme -string "RegularDark"  # Icons & widgets dark (macOS 26+)
+defaults write NSGlobalDomain AppleReduceDesktopTinting -int 1               # Liquid Glass tinted (macOS 26+)
+defaults write NSGlobalDomain NSGlassDiffusionSetting   -int 1               # Liquid Glass diffusion level (macOS 26+)
 defaults write NSGlobalDomain NSWindowResizeTime     -float 0.001       # Fast window resize
 defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode -bool true
 defaults write NSGlobalDomain PMPrintingExpandedStateForPrint    -bool true
@@ -969,7 +972,8 @@ echo -e "  ${CYAN} 8.${RESET} Open ${BOLD}Raycast${RESET} and configure your ext
 echo -e "  ${CYAN} 9.${RESET} Set ${BOLD}JetBrainsMono Nerd Font${RESET} in your terminal"
 echo -e "  ${CYAN}10.${RESET} Run ${BOLD}atuin import auto${RESET} to import existing shell history (optional: ${BOLD}atuin register${RESET} for sync)"
 echo -e "  ${CYAN}11.${RESET} Sign in to ${BOLD}CleanShot X${RESET} with your license"
-echo -e "  ${CYAN}12.${RESET} Restart your Mac to apply all system changes"
+echo -e "  ${CYAN}12.${RESET} Open ${BOLD}System Settings → Displays${RESET} → uncheck ${BOLD}True Tone${RESET} (no defaults command works for this)"
+echo -e "  ${CYAN}13.${RESET} Restart your Mac to apply all system changes"
 echo ""
 echo -e "  ${DIM}Full log saved to: $LOG_FILE${RESET}"
 echo ""
