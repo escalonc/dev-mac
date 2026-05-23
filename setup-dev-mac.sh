@@ -184,10 +184,8 @@ CLI_TOOLS=(
   "mkcert"           # Local HTTPS certs
   "httpie"           # User-friendly HTTP client
   "grpcurl"          # curl for gRPC
-  "dog"              # Better dig (DNS lookup)
   "gping"            # Better ping with graph
   "watch"            # Run commands periodically
-  "thefuck"          # Corrects mistyped commands
   "ranger"           # Terminal file manager
   "ncdu"             # Disk usage analyzer
   "duf"              # Better df
@@ -269,8 +267,8 @@ section "»  Languages & Runtimes"
 # Node.js via fnm (fast Node manager — 10-40x faster than nvm)
 install_brew "fnm"
 eval "$(fnm env)"
-if fnm list | grep -q "lts"; then
-  success "Node.js LTS already installed via fnm"
+if fnm list 2>/dev/null | grep -qE 'v[0-9]+\.[0-9]+\.[0-9]+'; then
+  success "Node.js already installed via fnm ($(fnm current 2>/dev/null || echo 'unknown'))"
 else
   info "Installing Node.js LTS via fnm..."
   fnm install --lts
@@ -454,10 +452,8 @@ fi
 # ─────────────────────────────────────────────────────────────────────────────
 section "»  Git Configuration"
 
-echo ""
-read -rp "  Enter your full name for Git: " GIT_NAME
-read -rp "  Enter your email for Git: "     GIT_EMAIL
-echo ""
+GIT_NAME="Christopher Escalon"
+GIT_EMAIL="escalonc@users.noreply.github.com"
 
 git config --global user.name  "$GIT_NAME"
 git config --global user.email "$GIT_EMAIL"
@@ -648,7 +644,6 @@ eval "$(fnm env --use-on-cd)"
 
 # uv (Python — replaces pyenv, pip, poetry, pipx, virtualenv)
 eval "$(uv generate-shell-completion zsh 2>/dev/null || true)"
-eval "$(uvx --generate-shell-completion zsh 2>/dev/null || true)"
 
 # Bun
 export BUN_INSTALL="$HOME/.bun"
@@ -671,9 +666,6 @@ export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 export BAT_THEME="Dracula"
 alias cat="bat"
 alias less="bat --paging=always"
-
-# thefuck
-eval "$(thefuck --alias)"
 
 # ── Aliases ──────────────────────────────────────────────────────────────────
 # Navigation
@@ -868,7 +860,8 @@ success "Keyboard"
 info "Configuring trackpad..."
 defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true  # Tap to click
 defaults write NSGlobalDomain com.apple.swipescrolldirection -bool false  # Natural scrolling off
-defaults write com.apple.AppleMultitouchTrackpad TrackpadThreeFingerDrag  -bool true
+# Three-finger drag must be enabled in System Settings → Accessibility →
+# Pointer Control → Trackpad Options on macOS 11+.
 success "Trackpad"
 
 # ── Screenshots ───────────────────────────────────────────────────────────────
@@ -896,11 +889,6 @@ defaults write com.apple.screensaver askForPassword        -int 1
 defaults write com.apple.screensaver askForPasswordDelay   -int 0
 sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on &>/dev/null
 success "Security"
-
-# ── SSD Performance ────────────────────────────────────────────────────────────
-info "SSD optimizations..."
-sudo tmutil disablelocal 2>/dev/null || true   # Disable Time Machine local backups
-success "SSD"
 
 # ── Activity Monitor ─────────────────────────────────────────────────────────
 defaults write com.apple.ActivityMonitor OpenMainWindow -bool true
