@@ -38,12 +38,15 @@ FAILED_STEPS=()
 section() {
   local title="$1"
   local width=54
+  [[ ${#title} -ge $width ]] && width=$(( ${#title} + 2 ))
+  local border
+  border=$(printf '═%.0s' $(seq 1 $width))
   local pad
   pad=$(printf '%*s' $(( width - ${#title} )) '')
   echo ""
-  echo -e "${BOLD}${BLUE}  ╔════════════════════════════════════════════════════════╗${RESET}"
+  echo -e "${BOLD}${BLUE}  ╔${border}╗${RESET}"
   echo -e "${BOLD}${BLUE}  ║ ${BOLD}${WHITE}${title}${pad}${BLUE} ║${RESET}"
-  echo -e "${BOLD}${BLUE}  ╚════════════════════════════════════════════════════════╝${RESET}"
+  echo -e "${BOLD}${BLUE}  ╚${border}╝${RESET}"
   echo ""
 }
 
@@ -84,7 +87,6 @@ install_brew() {
 # ─────────────────────────────────────────────────────────────────────────────
 # BANNER
 # ─────────────────────────────────────────────────────────────────────────────
-clear
 echo ""
 echo -e "${BOLD}${CYAN}  ██████╗ ███████╗██╗   ██╗    ███╗   ███╗ █████╗  ██████╗ ${RESET}"
 echo -e "${BOLD}${CYAN}  ██╔══██╗██╔════╝██║   ██║    ████╗ ████║██╔══██╗██╔════╝ ${RESET}"
@@ -134,7 +136,7 @@ section "»  Homebrew"
 if command -v brew &>/dev/null; then
   success "Homebrew already installed"
   info "Updating Homebrew..."
-  brew update --quiet
+  brew update --quiet 2>>"$LOG_FILE" || warn "brew update failed — proceeding with cached formulae"
 else
   info "Installing Homebrew..."
   NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -165,41 +167,38 @@ CLI_TOOLS=(
   "jq"               # JSON processor
   "yq"               # YAML processor
   "tree"             # Directory tree viewer
-  "htop"             # Process monitor (better top)
+  "btop"             # Process monitor (modern top replacement)
   "bat"              # cat with syntax highlighting
   "eza"              # ls with superpowers (exa replacement)
   "fd"               # find alternative
   "fzf"              # Fuzzy finder
   "ripgrep"          # rg — fast grep
+  "atuin"            # Magical shell history search with optional sync
   "delta"            # Better git diffs
   "tldr"             # Simplified man pages
   "hyperfine"        # Benchmarking tool
   "glow"             # Markdown in terminal
   "lazygit"          # Terminal UI for git
   "lazydocker"       # Terminal UI for Docker
-  "neovim"           # Modern vim
-  "tmux"             # Terminal multiplexer
+  "zellij"           # Terminal multiplexer (modern tmux alternative)
+  "micro"            # Friendly non-modal terminal editor
   "zoxide"           # Smarter cd command
   "direnv"           # Per-directory env vars
   "mkcert"           # Local HTTPS certs
   "httpie"           # User-friendly HTTP client
   "grpcurl"          # curl for gRPC
-  "gping"            # Better ping with graph
   "watch"            # Run commands periodically
-  "ranger"           # Terminal file manager
+  "yazi"             # Modern terminal file manager (Rust)
   "ncdu"             # Disk usage analyzer
   "duf"              # Better df
   "dust"             # Better du
   "procs"            # Better ps
-  "bottom"           # Better top/htop (btm)
   "gnu-sed"          # GNU sed (gsed)
   "coreutils"        # GNU core utilities
   "cmake"            # Build system
   "openssl"          # TLS/SSL toolkit
   "gpg"              # GNU Privacy Guard
   "pinentry-mac"     # GPG passphrase prompt
-  "nmap"             # Network scanner
-  "wrk"              # HTTP benchmarking
 )
 
 for tool in "${CLI_TOOLS[@]}"; do
@@ -387,16 +386,18 @@ install_brew_cask "spotify"   # Music
 
 # ── Utilities & System ────────────────────────────────────────────────────────
 echo -e "  ${DIM}── Utilities${RESET}"
-install_brew_cask "bartender"       # Menu bar organizer
+install_brew_cask "jordanbaird-ice" # Menu bar organizer (open-source Bartender alternative)
 install_brew_cask "imageoptim"      # Image compression
 install_brew_cask "istat-menus"     # System monitoring menubar
 install_brew_cask "keka"            # File archiver (zip/rar/7z)
 install_brew_cask "appcleaner"      # Uninstaller
 install_brew_cask "alt-tab"         # Windows-style app switcher
 install_brew_cask "utm"             # VM runner for Mac
-install_brew_cask "docker-desktop"      # Docker Desktop (engine + GUI + compose)
+install_brew_cask "orbstack"        # Docker engine + Linux VMs (Docker Desktop replacement)
 install_brew_cask "1password"       # Password manager
 install_brew_cask "transmit"        # File transfer (SFTP/S3)
+install_brew_cask "cleanshot"       # Screenshot tool (license required)
+install_brew_cask "claude"          # Anthropic's official Claude desktop app
 
 # ── Fonts ─────────────────────────────────────────────────────────────────────
 echo -e "  ${DIM}── Developer Fonts${RESET}"
@@ -438,6 +439,7 @@ if command -v code &>/dev/null; then
     "formulahendry.auto-rename-tag"
     "christian-kohler.path-intellisense"
     "mikestead.dotenv"
+    "yoavbls.pretty-ts-errors"
   )
 
   for ext in "${EXTENSIONS[@]}"; do
@@ -614,7 +616,6 @@ plugins=(
   brew
   macos
   vscode
-  tmux
   fzf
   colored-man-pages
   command-not-found
@@ -634,6 +635,8 @@ if [[ "$(uname -m)" == "arm64" ]]; then
 else
   eval "$(/usr/local/bin/brew shellenv)"
 fi
+export HOMEBREW_NO_ANALYTICS=1
+export HOMEBREW_NO_ENV_HINTS=1
 
 export PATH="$HOME/.local/bin:$PATH"
 export PATH="$HOME/.cargo/bin:$PATH"
@@ -652,6 +655,9 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 # ── Tool Config ──────────────────────────────────────────────────────────────
 # zoxide (smart cd)
 eval "$(zoxide init zsh)"
+
+# atuin (shell history)
+eval "$(atuin init zsh)"
 
 # direnv
 eval "$(direnv hook zsh)"
@@ -719,6 +725,14 @@ alias ports="sudo lsof -i -P -n | grep LISTEN"
 alias myip="curl -s api.ipify.org; echo"
 
 # ── Functions ────────────────────────────────────────────────────────────────
+# yazi — open file manager, cd to wherever you quit from
+y() {
+  local tmp; tmp=$(mktemp -t "yazi-cwd.XXXXXX")
+  yazi "$@" --cwd-file="$tmp"
+  local cwd; cwd=$(cat -- "$tmp") && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && cd -- "$cwd"
+  rm -f -- "$tmp"
+}
+
 # Create dir and cd into it
 mkcd() { mkdir -p "$@" && cd "$_" || return; }
 
@@ -891,18 +905,24 @@ sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on &>/dev/
 success "Security"
 
 # ── Activity Monitor ─────────────────────────────────────────────────────────
+info "Configuring Activity Monitor..."
 defaults write com.apple.ActivityMonitor OpenMainWindow -bool true
 defaults write com.apple.ActivityMonitor ShowCategory   -int 0
 defaults write com.apple.ActivityMonitor SortColumn     -string "CPUUsage"
 defaults write com.apple.ActivityMonitor SortDirection  -int 0
+success "Activity Monitor"
 
 # ── TextEdit ─────────────────────────────────────────────────────────────────
+info "Configuring TextEdit..."
 defaults write com.apple.TextEdit RichText       -int 0
 defaults write com.apple.TextEdit PlainTextEncoding -int 4
 defaults write com.apple.TextEdit PlainTextEncodingForWrite -int 4
+success "TextEdit"
 
 # ── Terminal ──────────────────────────────────────────────────────────────────
+info "Configuring Terminal..."
 defaults write com.apple.terminal SecureKeyboardEntry -bool true
+success "Terminal"
 
 # Apply changes
 killall Dock    2>/dev/null || true
@@ -979,9 +999,17 @@ fi
 # DONE
 # ─────────────────────────────────────────────────────────────────────────────
 echo ""
+echo -e "${BOLD}${GREEN}  ██████╗  ██████╗ ███╗   ██╗███████╗██╗${RESET}"
+echo -e "${BOLD}${GREEN}  ██╔══██╗██╔═══██╗████╗  ██║██╔════╝██║${RESET}"
+echo -e "${BOLD}${GREEN}  ██║  ██║██║   ██║██╔██╗ ██║█████╗  ██║${RESET}"
+echo -e "${BOLD}${GREEN}  ██║  ██║██║   ██║██║╚██╗██║██╔══╝  ╚═╝${RESET}"
+echo -e "${BOLD}${GREEN}  ██████╔╝╚██████╔╝██║ ╚████║███████╗██╗${RESET}"
+echo -e "${BOLD}${GREEN}  ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝╚══════╝╚═╝${RESET}"
+echo ""
 echo -e "${BOLD}${GREEN}  ╔══════════════════════════════════════════════════════════════╗${RESET}"
 echo -e "${BOLD}${GREEN}  ║      Setup Complete! Your Mac is ready for development.      ║${RESET}"
 echo -e "${BOLD}${GREEN}  ╚══════════════════════════════════════════════════════════════╝${RESET}"
+echo ""
 echo -e "  ${BOLD}Next steps:${RESET}"
 echo ""
 echo -e "  ${CYAN} 1.${RESET} Restart your terminal (or run: ${BOLD}source ~/.zshrc${RESET})"
@@ -990,10 +1018,12 @@ echo -e "  ${CYAN} 3.${RESET} Open ${BOLD}1Password${RESET} → Settings → Dev
 echo -e "  ${CYAN} 4.${RESET} Create your SSH key in ${BOLD}1Password${RESET} → add public key to GitHub/GitLab"
 echo -e "  ${CYAN} 5.${RESET} Run ${BOLD}gh auth login${RESET} to authenticate the GitHub CLI"
 echo -e "  ${CYAN} 6.${RESET} Run ${BOLD}claude${RESET} in your terminal to authenticate Claude Code"
-echo -e "  ${CYAN} 7.${RESET} Open ${BOLD}Docker Desktop${RESET} and complete setup"
+echo -e "  ${CYAN} 7.${RESET} Open ${BOLD}OrbStack${RESET} and complete setup"
 echo -e "  ${CYAN} 8.${RESET} Open ${BOLD}Raycast${RESET} and configure your extensions"
 echo -e "  ${CYAN} 9.${RESET} Set ${BOLD}JetBrainsMono Nerd Font${RESET} in your terminal"
-echo -e "  ${CYAN}10.${RESET} Restart your Mac to apply all system changes"
+echo -e "  ${CYAN}10.${RESET} Run ${BOLD}atuin import auto${RESET} to import existing shell history (optional: ${BOLD}atuin register${RESET} for sync)"
+echo -e "  ${CYAN}11.${RESET} Sign in to ${BOLD}CleanShot X${RESET} with your license"
+echo -e "  ${CYAN}12.${RESET} Restart your Mac to apply all system changes"
 echo ""
 echo -e "  ${DIM}Full log saved to: $LOG_FILE${RESET}"
 echo ""
