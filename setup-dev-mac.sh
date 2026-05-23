@@ -823,18 +823,19 @@ success "Keyboard"
 # ── Trackpad ─────────────────────────────────────────────────────────────────
 info "Configuring trackpad..."
 defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true  # Tap to click
-defaults write NSGlobalDomain com.apple.swipescrolldirection -bool false  # Natural scrolling off
-# Three-finger drag must be enabled in System Settings → Accessibility →
-# Pointer Control → Trackpad Options on macOS 11+.
+# Natural scrolling off — system-wide key, applies to both trackpad and mouse
+defaults write NSGlobalDomain com.apple.swipescrolldirection -bool false
+# Tap-to-drag without drag lock
+defaults write com.apple.AppleMultitouchTrackpad Dragging -bool true
 success "Trackpad"
 
 # ── Screenshots ───────────────────────────────────────────────────────────────
 info "Configuring screenshots..."
-mkdir -p "$HOME/Desktop/Screenshots"
-defaults write com.apple.screencapture location "$HOME/Desktop/Screenshots"
+mkdir -p "$HOME/Pictures/Screenshots"
+defaults write com.apple.screencapture location "$HOME/Pictures/Screenshots"
 defaults write com.apple.screencapture type     "png"
 defaults write com.apple.screencapture disable-shadow -bool true
-success "Screenshots → ~/Desktop/Screenshots"
+success "Screenshots → ~/Pictures/Screenshots"
 
 # ── Menu Bar & UI ─────────────────────────────────────────────────────────────
 info "Configuring UI..."
