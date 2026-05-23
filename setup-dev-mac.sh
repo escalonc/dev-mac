@@ -264,6 +264,11 @@ else
   success "Node.js LTS"
 fi
 
+# pnpm — primary Node package manager (preferred over npm: content-addressable
+# store, no hoisting, isolated installs, easier to disable lifecycle scripts).
+# Installed via brew so it's independent of any fnm-managed Node version.
+install_brew "pnpm"
+
 # Python via uv (replaces pyenv + pip + poetry + pipx + virtualenv — 10-100x faster)
 if command -v uv &>/dev/null; then
   success "uv already installed ($(uv --version))"
@@ -274,8 +279,12 @@ else
   success "uv — $(uv --version)"
 fi
 
-info "Installing latest Python via uv..."
-uv python install 2>>"$LOG_FILE" && success "Python installed via uv" || error "Python install failed"
+if uv python list --only-installed 2>/dev/null | grep -q .; then
+  success "Python already installed via uv ($(uv python find 2>/dev/null | xargs -I{} basename {} || echo 'unknown'))"
+else
+  info "Installing latest Python via uv..."
+  uv python install 2>>"$LOG_FILE" && success "Python installed via uv" || error "Python install failed"
+fi
 
 # Rust
 if command -v rustup &>/dev/null; then
@@ -292,19 +301,15 @@ fi
 # ─────────────────────────────────────────────────────────────────────────────
 section "»  Package Managers & Build Tools"
 
-npm_globals=(
-  "pnpm"          # Fast package manager
+PNPM_GLOBALS=(
   "typescript"    # TypeScript compiler
   "tsx"           # TypeScript executor (replaces ts-node)
-  "nodemon"       # Auto-restart Node
-  "pm2"           # Process manager
-  "serve"         # Static file server
   "vercel"        # Vercel CLI
 )
 
-for pkg in "${npm_globals[@]}"; do
-  info "Installing npm global: $pkg..."
-  npm install -g "$pkg" --quiet 2>>"$LOG_FILE" && success "$pkg" || warn "Failed: $pkg (see $LOG_FILE)"
+for pkg in "${PNPM_GLOBALS[@]}"; do
+  info "Installing pnpm global: $pkg..."
+  pnpm add -g "$pkg" 2>>"$LOG_FILE" && success "$pkg" || warn "Failed: $pkg (see $LOG_FILE)"
 done
 
 # Python tools via uv (isolated, no pip needed)
@@ -641,8 +646,8 @@ eval "$(atuin init zsh)"
 # direnv
 eval "$(direnv hook zsh)"
 
-# fzf
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+# fzf (keybindings + completion straight from the binary; no install step needed)
+source <(fzf --zsh)
 export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
 export FZF_DEFAULT_OPTS='--height 40% --reverse --border --preview "bat --style=numbers --color=always --line-range :500 {}"'
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
@@ -676,13 +681,12 @@ alias activate="source .venv/bin/activate"
 alias reload="source ~/.zshrc"
 alias zshconfig="code ~/.zshrc"
 alias hosts="sudo code /etc/hosts"
-alias ip="curl -s ifconfig.me"
+alias myip="curl -s ifconfig.me; echo"
 alias localip="ipconfig getifaddr en0"
 alias flushdns="sudo dscacheutil -flushcache && sudo killall -HUP mDNSResponder && echo 'DNS flushed'"
 alias cleanup="find . -name '.DS_Store' -delete"
-alias brewup="brew update && brew upgrade && brew cleanup && brew doctor"
+alias brewup="brew update && brew upgrade && brew cleanup"
 alias ports="sudo lsof -i -P -n | grep LISTEN"
-alias myip="curl -s api.ipify.org; echo"
 
 # ── Functions ────────────────────────────────────────────────────────────────
 # yazi — open file manager, cd to wherever you quit from
@@ -700,7 +704,10 @@ gclone() { git clone "$1" && cd "$(basename "$1" .git)" || return; }
 serve() { python3 -m http.server "${1:-8080}"; }
 
 # Kill process on port
-killport() { lsof -ti tcp:"$1" | xargs kill -9; }
+killport() {
+  local pids; pids=$(lsof -ti tcp:"$1")
+  [[ -n $pids ]] && kill -9 $pids || echo "No process on port $1"
+}
 
 # Find process using port
 whatsport() { sudo lsof -i :"$1"; }
@@ -711,8 +718,10 @@ extract() {
     case $1 in
       *.tar.bz2) tar xjf "$1"    ;;
       *.tar.gz)  tar xzf "$1"    ;;
+      *.tar.xz)  tar xJf "$1"    ;;
       *.bz2)     bunzip2 "$1"    ;;
       *.gz)      gunzip "$1"     ;;
+      *.xz)      unxz "$1"       ;;
       *.tar)     tar xf "$1"     ;;
       *.tbz2)    tar xjf "$1"    ;;
       *.tgz)     tar xzf "$1"    ;;
@@ -874,10 +883,6 @@ else
   if curl -fsSL https://claude.ai/install.sh | bash; then
     success "Claude Code installed"
     echo -e "  ${ARROW} To authenticate: run ${BOLD}claude${RESET} in your terminal"
-    # Add to PATH if not already there (installer puts it in ~/.local/bin)
-    if ! grep -q '\.local/bin' "$HOME/.zshrc" 2>/dev/null; then
-      echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.zshrc"
-    fi
   else
     warn "Native installer failed, falling back to npm..."
     if npm install -g @anthropic-ai/claude-code 2>>"$LOG_FILE"; then
