@@ -114,22 +114,7 @@ sudo -v
 while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 2. XCODE COMMAND LINE TOOLS
-# ─────────────────────────────────────────────────────────────────────────────
-section "»  Xcode Command Line Tools"
-
-if xcode-select -p &>/dev/null; then
-  success "Xcode CLT already installed"
-else
-  info "Installing Xcode Command Line Tools..."
-  xcode-select --install
-  info "Waiting for Xcode CLT installation to complete..."
-  until xcode-select -p &>/dev/null; do sleep 5; done
-  success "Xcode Command Line Tools installed"
-fi
-
-# ─────────────────────────────────────────────────────────────────────────────
-# 3. HOMEBREW
+# 2. HOMEBREW (installs Xcode CLT automatically via NONINTERACTIVE)
 # ─────────────────────────────────────────────────────────────────────────────
 section "»  Homebrew"
 
@@ -152,7 +137,7 @@ fi
 brew analytics off   # Disable telemetry
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 4. CLI TOOLS
+# 3. CLI TOOLS
 # ─────────────────────────────────────────────────────────────────────────────
 section "»  CLI Tools"
 
@@ -197,8 +182,6 @@ CLI_TOOLS=(
   "coreutils"        # GNU core utilities
   "cmake"            # Build system
   "openssl"          # TLS/SSL toolkit
-  "gpg"              # GNU Privacy Guard
-  "pinentry-mac"     # GPG passphrase prompt
 )
 
 for tool in "${CLI_TOOLS[@]}"; do
@@ -207,7 +190,7 @@ for tool in "${CLI_TOOLS[@]}"; do
 done
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 5. SHELL: ZSH + OH MY ZSH + PLUGINS
+# 4. SHELL: ZSH + OH MY ZSH + PLUGINS
 # ─────────────────────────────────────────────────────────────────────────────
 section "»  Shell: Zsh + Oh My Zsh + Plugins"
 
@@ -259,7 +242,7 @@ else
 fi
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 6. LANGUAGES & RUNTIMES
+# 5. LANGUAGES & RUNTIMES
 # ─────────────────────────────────────────────────────────────────────────────
 section "»  Languages & Runtimes"
 
@@ -309,7 +292,7 @@ else
 fi
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 7. PACKAGE MANAGERS & BUILD TOOLS
+# 6. PACKAGE MANAGERS & BUILD TOOLS
 # ─────────────────────────────────────────────────────────────────────────────
 section "»  Package Managers & Build Tools"
 
@@ -345,7 +328,7 @@ for tool in "${UV_TOOLS[@]}"; do
 done
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 8. DEVOPS & CLOUD TOOLS
+# 7. DEVOPS & CLOUD TOOLS
 # ─────────────────────────────────────────────────────────────────────────────
 section "»  DevOps & Cloud Tools"
 
@@ -353,7 +336,7 @@ install_brew "awscli"           # AWS CLI
 install_brew "azure-cli"        # Azure CLI
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 9. GUI APPLICATIONS (via Homebrew Cask)
+# 8. GUI APPLICATIONS (via Homebrew Cask)
 # ─────────────────────────────────────────────────────────────────────────────
 section "»  Applications"
 
@@ -365,6 +348,11 @@ install_brew_cask "brave-browser"   # Brave
 echo -e "  ${DIM}── IDEs & Editors${RESET}"
 install_brew_cask "visual-studio-code"   # VS Code
 install_brew_cask "jetbrains-toolbox"    # All JetBrains IDEs manager
+
+# Ensure VS Code's `code` CLI is on PATH for this script run (the cask doesn't
+# add it automatically — VS Code normally adds it via the GUI Command Palette).
+VSCODE_BIN="/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
+[[ -d "$VSCODE_BIN" ]] && export PATH="$VSCODE_BIN:$PATH"
 
 # ── Terminals ─────────────────────────────────────────────────────────────────
 echo -e "  ${DIM}── Terminals${RESET}"
@@ -408,7 +396,7 @@ install_brew_cask "font-cascadia-code-nerd-font"
 install_brew_cask "font-meslo-lg-nerd-font"
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 10. VS CODE EXTENSIONS
+# 9. VS CODE EXTENSIONS
 # ─────────────────────────────────────────────────────────────────────────────
 section "»  VS Code Extensions"
 
@@ -450,7 +438,7 @@ else
 fi
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 11. GIT GLOBAL CONFIG
+# 10. GIT GLOBAL CONFIG
 # ─────────────────────────────────────────────────────────────────────────────
 section "»  Git Configuration"
 
@@ -549,7 +537,7 @@ GITIGNORE
 success "Git configured for $GIT_NAME <$GIT_EMAIL>"
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 12. SSH — 1PASSWORD AGENT
+# 11. SSH — 1PASSWORD AGENT
 # ─────────────────────────────────────────────────────────────────────────────
 section "»  SSH — 1Password Agent"
 
@@ -577,7 +565,7 @@ info "4. Test with: ssh -T git@github.com"
 echo ""
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 13. ZSHRC CONFIGURATION
+# 12. ZSHRC CONFIGURATION
 # ─────────────────────────────────────────────────────────────────────────────
 section "»  Shell Configuration (.zshrc)"
 
@@ -640,6 +628,10 @@ export HOMEBREW_NO_ENV_HINTS=1
 
 export PATH="$HOME/.local/bin:$PATH"
 export PATH="$HOME/.cargo/bin:$PATH"
+
+# VS Code CLI (cask doesn't add `code` to PATH; this makes it work from any shell)
+[[ -d "/Applications/Visual Studio Code.app/Contents/Resources/app/bin" ]] && \
+  export PATH="/Applications/Visual Studio Code.app/Contents/Resources/app/bin:$PATH"
 
 # ── Language Managers ────────────────────────────────────────────────────────
 # fnm (Node)
@@ -795,9 +787,6 @@ setopt HIST_IGNORE_ALL_DUPS
 setopt HIST_FIND_NO_DUPS
 setopt SHARE_HISTORY
 
-# GPG for git signing
-export GPG_TTY=$(tty)
-
 # ── Powerlevel10k config ─────────────────────────────────────────────────────
 [[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
 
@@ -823,7 +812,7 @@ else
 fi
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 14. MACOS SYSTEM DEFAULTS
+# 13. MACOS SYSTEM DEFAULTS
 # ─────────────────────────────────────────────────────────────────────────────
 section "»  macOS System Preferences"
 
@@ -932,7 +921,7 @@ killall SystemUIServer 2>/dev/null || true
 success "macOS defaults applied"
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 15. CLAUDE CODE
+# 14. CLAUDE CODE
 # ─────────────────────────────────────────────────────────────────────────────
 section "»  Claude Code"
 
@@ -968,7 +957,7 @@ fi
 info "Docs: https://docs.claude.com/en/docs/claude-code/overview"
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 16. FINAL CLEANUP
+# 15. FINAL CLEANUP
 # ─────────────────────────────────────────────────────────────────────────────
 section "»  Cleanup"
 
