@@ -817,12 +817,12 @@ defaults write NSGlobalDomain NSAutomaticSpellingCorrectionEnabled -bool false
 defaults write NSGlobalDomain NSAutomaticQuoteSubstitutionEnabled  -bool false
 defaults write NSGlobalDomain NSAutomaticDashSubstitutionEnabled   -bool false
 defaults write NSGlobalDomain NSAutomaticCapitalizationEnabled     -bool false
-defaults write NSGlobalDomain AppleKeyboardUIMode                  -int 3
+defaults write NSGlobalDomain AppleKeyboardUIMode                  -int 2
 success "Keyboard"
 
 # ── Trackpad ─────────────────────────────────────────────────────────────────
 info "Configuring trackpad..."
-defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true  # Tap to click
+defaults write com.apple.AppleMultitouchTrackpad Clicking -bool true  # Tap to click
 # Natural scrolling off — system-wide key, applies to both trackpad and mouse
 defaults write NSGlobalDomain com.apple.swipescrolldirection -bool false
 # Tap-to-drag without drag lock
