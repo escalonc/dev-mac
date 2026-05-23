@@ -937,8 +937,8 @@ info "Docs: https://docs.claude.com/en/docs/claude-code/overview"
 section "»  Cleanup"
 
 info "Running brew cleanup..."
-brew cleanup --quiet
-brew autoremove --quiet
+brew cleanup --quiet 2>>"$LOG_FILE" || warn "brew cleanup had issues (see $LOG_FILE)"
+brew autoremove --quiet 2>>"$LOG_FILE" || warn "brew autoremove had issues (see $LOG_FILE)"
 
 success "Done!"
 
