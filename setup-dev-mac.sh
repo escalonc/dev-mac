@@ -846,8 +846,6 @@ defaults write NSGlobalDomain NSGlassDiffusionSetting   -int 1               # L
 defaults write NSGlobalDomain NSWindowResizeTime     -float 0.001       # Fast window resize
 defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode -bool true
 defaults write NSGlobalDomain PMPrintingExpandedStateForPrint    -bool true
-defaults write com.apple.universalaccess reduceMotion -bool true        # Reduce motion
-defaults write com.apple.menuextra.clock DateFormat  -string "EEE MMM d  HH:mm:ss"
 success "UI"
 
 # ── Security ──────────────────────────────────────────────────────────────────
@@ -855,23 +853,7 @@ info "Configuring security..."
 sudo defaults write /Library/Preferences/com.apple.loginwindow DisableConsoleAccess -bool true
 defaults write com.apple.screensaver askForPassword        -int 1
 defaults write com.apple.screensaver askForPasswordDelay   -int 0
-sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on &>/dev/null
 success "Security"
-
-# ── Activity Monitor ─────────────────────────────────────────────────────────
-info "Configuring Activity Monitor..."
-defaults write com.apple.ActivityMonitor OpenMainWindow -bool true
-defaults write com.apple.ActivityMonitor ShowCategory   -int 0
-defaults write com.apple.ActivityMonitor SortColumn     -string "CPUUsage"
-defaults write com.apple.ActivityMonitor SortDirection  -int 0
-success "Activity Monitor"
-
-# ── TextEdit ─────────────────────────────────────────────────────────────────
-info "Configuring TextEdit..."
-defaults write com.apple.TextEdit RichText       -int 0
-defaults write com.apple.TextEdit PlainTextEncoding -int 4
-defaults write com.apple.TextEdit PlainTextEncodingForWrite -int 4
-success "TextEdit"
 
 # Apply changes
 killall Dock    2>/dev/null || true
