@@ -817,7 +817,7 @@ defaults write NSGlobalDomain NSAutomaticSpellingCorrectionEnabled -bool false
 defaults write NSGlobalDomain NSAutomaticQuoteSubstitutionEnabled  -bool false
 defaults write NSGlobalDomain NSAutomaticDashSubstitutionEnabled   -bool false
 defaults write NSGlobalDomain NSAutomaticCapitalizationEnabled     -bool false
-defaults write NSGlobalDomain AppleKeyboardUIMode                  -int 3  # Tab through all UI
+defaults write NSGlobalDomain AppleKeyboardUIMode                  -int 3
 success "Keyboard"
 
 # ── Trackpad ─────────────────────────────────────────────────────────────────
