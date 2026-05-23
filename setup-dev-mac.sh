@@ -781,26 +781,24 @@ section "»  macOS System Preferences"
 
 # ── Dock ──────────────────────────────────────────────────────────────────────
 info "Configuring Dock..."
-defaults write com.apple.dock autohide              -bool true
-defaults write com.apple.dock autohide-delay        -float 0
+defaults write com.apple.dock autohide               -bool true
+defaults write com.apple.dock autohide-delay         -float 0
 defaults write com.apple.dock autohide-time-modifier -float 0.15
-defaults write com.apple.dock tilesize              -int 48
-defaults write com.apple.dock magnification         -bool true
-defaults write com.apple.dock largesize             -int 64
-defaults write com.apple.dock show-recents          -bool false
+defaults write com.apple.dock magnification          -bool false
+defaults write com.apple.dock show-recents           -bool false
 defaults write com.apple.dock minimize-to-application -bool true
-defaults write com.apple.dock expose-animation-duration -float 0.1
-defaults write com.apple.dock mru-spaces            -bool false   # Don't rearrange spaces
+defaults write com.apple.dock mineffect              -string "scale"   # Minimize: scale (vs default "genie")
+defaults write com.apple.dock mru-spaces             -bool false       # Don't rearrange spaces
+# Click wallpaper to reveal desktop: only when in Stage Manager (default in newer macOS is "always")
+defaults write com.apple.WindowManager EnableStandardClickToShowDesktop -bool false
+# Close windows when quitting an application (don't auto-restore them next launch)
+defaults write NSGlobalDomain NSQuitAlwaysKeepsWindows -bool false
 success "Dock"
 
 # ── Finder ────────────────────────────────────────────────────────────────────
 info "Configuring Finder..."
-defaults write com.apple.finder AppleShowAllFiles           -bool true
-defaults write com.apple.finder ShowStatusBar               -bool true
-defaults write com.apple.finder ShowPathbar                 -bool true
 defaults write com.apple.finder FXPreferredViewStyle        -string "Nlsv"  # List view
 defaults write com.apple.finder FXDefaultSearchScope        -string "SCcf"  # Search current folder
-defaults write com.apple.finder _FXShowPosixPathInTitle     -bool true
 defaults write com.apple.finder _FXSortFoldersFirst         -bool true
 defaults write com.apple.finder FXEnableExtensionChangeWarning -bool false
 defaults write com.apple.finder ShowHardDrivesOnDesktop     -bool false
