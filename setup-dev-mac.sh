@@ -574,6 +574,11 @@ fi
 export ZSH="$HOME/.oh-my-zsh"
 ZSH_THEME="powerlevel10k/powerlevel10k"
 
+# Auto-update OMZ silently in the background, weekly
+zstyle ':omz:update' mode auto
+zstyle ':omz:update' frequency 7
+zstyle ':omz:update' verbose silent
+
 plugins=(
   git
   git-lfs
@@ -648,12 +653,6 @@ alias cat="bat"
 alias less="bat --paging=always"
 
 # ── Aliases ──────────────────────────────────────────────────────────────────
-# Navigation
-alias ..="cd .."
-alias ...="cd ../.."
-alias ....="cd ../../.."
-alias ~="cd ~"
-alias -- -="cd -"
 
 # List files (eza)
 alias ls="eza --icons --group-directories-first"
@@ -662,27 +661,14 @@ alias la="eza -a --icons"
 alias lt="eza --tree --icons --level=2"
 alias ltt="eza --tree --icons --level=3"
 
-# Git shortcuts (non-conflicting with OMZ git plugin)
-alias gpl="git pull"
-alias gcob="git checkout -b"
-alias gd="git diff"
-alias gds="git diff --staged"
-alias grb="git rebase"
-alias grbi="git rebase -i"
-alias gstp="git stash pop"
-
-# Docker
+# Docker (extras on top of OMZ docker plugin's defaults)
 alias d="docker"
 alias dc="docker compose"
-alias dps="docker ps"
-alias dpsa="docker ps -a"
 alias dex="docker exec -it"
-alias drm="docker rm"
 alias drmi="docker rmi"
 alias dprune="docker system prune -a"
 
 # Python / uv
-alias py="python3"
 alias venv="uv venv && source .venv/bin/activate"
 alias activate="source .venv/bin/activate"
 
@@ -706,9 +692,6 @@ y() {
   local cwd; cwd=$(cat -- "$tmp") && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && cd -- "$cwd"
   rm -f -- "$tmp"
 }
-
-# Create dir and cd into it
-mkcd() { mkdir -p "$@" && cd "$_" || return; }
 
 # Clone and cd into repo
 gclone() { git clone "$1" && cd "$(basename "$1" .git)" || return; }
