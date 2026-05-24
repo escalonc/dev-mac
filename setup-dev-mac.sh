@@ -105,7 +105,7 @@ echo -e "${BOLD}${CYAN}  ║       Clean install -- fully loaded dev box        
 echo -e "${BOLD}${CYAN}  ╚══════════════════════════════════════════════════════════════╝${RESET}"
 echo ""
 echo -e "  ${DIM}This script will set up your MacBook Pro for software development.${RESET}"
-echo -e "  ${DIM}Estimated time: 20–40 minutes depending on your internet speed.${RESET}"
+echo -e "  ${DIM}Estimated time: 20-40 minutes depending on your internet speed.${RESET}"
 echo ""
 echo -e "  ${WARN}  ${YELLOW}sudo access is required. You may be prompted for your password.${RESET}"
 echo ""
@@ -964,3 +964,5 @@ echo -e "  ${CYAN}13.${RESET} Restart your Mac to apply all system changes"
 echo ""
 echo -e "  ${DIM}Full log saved to: $LOG_FILE${RESET}"
 echo ""
+
+
